@@ -245,21 +245,6 @@ namespace DemoInfo
 		#endregion
 
 		/// <summary>
-		/// The mapname of the Demo. Only avaible after the header is parsed. 
-		/// Is a string like "de_dust2".
-		/// </summary>
-		/// <value>The map.</value>
-		public string Map {
-			get { return Header.MapName; }
-		}
-
-		/// <summary>
-		/// The header of the demo, containing some useful information. 
-		/// </summary>
-		/// <value>The header.</value>
-		public DemoHeader Header { get; private set; }
-
-		/// <summary>
 		/// Gets the participants of this game
 		/// </summary>
 		/// <value>The participants.</value>
@@ -444,30 +429,6 @@ namespace DemoInfo
 		internal Dictionary<int, byte[]> instanceBaseline = new Dictionary<int, byte[]>();
 
 		/// <summary>
-		/// The tickrate *of the demo* (16 for normal GOTV-demos)
-		/// </summary>
-		/// <value>The tick rate.</value>
-		public float TickRate {
-			get { return this.Header.PlaybackFrames / this.Header.PlaybackTime; }
-		}
-
-		/// <summary>
-		/// How long a tick of the demo is in s^-1
-		/// </summary>
-		/// <value>The tick time.</value>
-		public float TickTime {
-			get { return this.Header.PlaybackTime / this.Header.PlaybackFrames; }
-		}
-
-		/// <summary>
-		/// Gets the parsing progess. 0 = beginning, ~1 = finished (it can actually be > 1, so be careful!)
-		/// </summary>
-		/// <value>The parsing progess.</value>
-		public float ParsingProgess {
-			get { return (CurrentTick / (float)Header.PlaybackFrames); }
-		}
-
-		/// <summary>
 		/// The current tick the parser has seen. So if it's a 16-tick demo, 
 		/// it will have 16 after one second. 
 		/// </summary>
@@ -479,12 +440,6 @@ namespace DemoInfo
 		/// </summary>
 		/// <value>The current tick.</value>
 		public int IngameTick { get; internal set; }
-
-		/// <summary>
-		/// How far we've advanced in the demo in seconds. 
-		/// </summary>
-		/// <value>The current time.</value>
-		public float CurrentTime { get { return CurrentTick * TickTime; } }
 
 		/// <summary>
 		/// This contains additional informations about each player, such as Kills, Deaths, etc. 
@@ -524,11 +479,8 @@ namespace DemoInfo
 			if (header.Protocol != 4)
 				throw new InvalidDataException("Invalid Demo-Protocol");
 
-			Header = header;
-
-
 			if (HeaderParsed != null)
-				HeaderParsed(this, new HeaderParsedEventArgs(Header));
+				HeaderParsed(this, new HeaderParsedEventArgs(header));
 		}
 
 		/// <summary>
@@ -558,9 +510,6 @@ namespace DemoInfo
 		/// <returns><c>true</c>, if this wasn't the last tick, <c>false</c> otherwise.</returns>
 		public bool ParseNextTick()
 		{
-			if (Header == null)
-				throw new InvalidOperationException ("You need to call ParseHeader first before you call ParseToEnd or ParseNextTick!");
-
 			bool b = ParseTick();
 			
 			for (int i = 0; i < RawPlayers.Length; i++) {
