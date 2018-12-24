@@ -267,7 +267,7 @@ namespace DemoInfo
 		/// <summary>
 		/// The stream of the demo - all the information go here
 		/// </summary>
-		private readonly IBitStream BitStream;
+		private IBitStream BitStream;
 
 
 
@@ -452,21 +452,23 @@ namespace DemoInfo
 		/// Hint: ParseHeader() is propably what you want to look into next. 
 		/// </summary>
 		/// <param name="input">An input-stream.</param>
-		public DemoParser(Stream input)
+		public DemoParser()
 		{
-			BitStream = BitStreamUtil.Create(input);
 
 			for (int i = 0; i < MAXPLAYERS; i++) {
 				additionalInformations [i] = new AdditionalPlayerInformation ();
 			}
 		}
 
+        public void SetStream(Stream input)
+        {
+            BitStream = BitStreamUtil.Create(input);
+        }
 
-
-		/// <summary>
-		/// Parses the header (first few hundret bytes) of the demo. 
-		/// </summary>
-		public void ParseHeader()
+        /// <summary>
+        /// Parses the header (first few hundret bytes) of the demo. 
+        /// </summary>
+        public void ParseHeader()
 		{
 			var header = DemoHeader.ParseFrom(BitStream);
 
@@ -509,61 +511,73 @@ namespace DemoInfo
 		/// </summary>
 		/// <returns><c>true</c>, if this wasn't the last tick, <c>false</c> otherwise.</returns>
 		public bool ParseNextTick()
-		{
-			bool b = ParseTick();
-			
-			for (int i = 0; i < RawPlayers.Length; i++) {
-				if (RawPlayers[i] == null)
-					continue;
+        {
+            bool b = ParseTick();
 
-				var rawPlayer = RawPlayers[i];
+            UpdateTickData();
 
-				int id = rawPlayer.UserID;
+            if (b)
+            {
+                if (TickDone != null)
+                    TickDone(this, new TickDoneEventArgs());
+            }
 
-				if (PlayerInformations[i] != null) { //There is an good entity for this
-					bool newplayer = false;
-					if (!Players.ContainsKey(id)){
-						Players[id] = PlayerInformations[i];
-						newplayer = true;
-					}
+            return b;
+        }
 
-					Player p = Players[id];
-					p.Name = rawPlayer.Name;
-					p.SteamID = rawPlayer.XUID;
+        private void UpdateTickData()
+        {
+            for (int i = 0; i < RawPlayers.Length; i++)
+            {
+                if (RawPlayers[i] == null)
+                    continue;
 
-					p.AdditionaInformations = additionalInformations [p.EntityID];
+                var rawPlayer = RawPlayers[i];
 
-					if (p.IsAlive) {
-						p.LastAlivePosition = p.Position.Copy();
-					}
+                int id = rawPlayer.UserID;
 
-					if (newplayer && p.SteamID != 0){
-						PlayerBindEventArgs bind = new PlayerBindEventArgs();
-						bind.Player = p;
-						RaisePlayerBind(bind);
-					}
-				}
-			}
+                if (PlayerInformations[i] != null)
+                { //There is an good entity for this
+                    bool newplayer = false;
+                    if (!Players.ContainsKey(id))
+                    {
+                        Players[id] = PlayerInformations[i];
+                        newplayer = true;
+                    }
 
-			while (GEH_StartBurns.Count > 0) {
-				var fireTup = GEH_StartBurns.Dequeue();
-				fireTup.Item2.ThrownBy = InfernoOwners[fireTup.Item1];
-				RaiseFireWithOwnerStart(fireTup.Item2);
-			}
+                    Player p = Players[id];
+                    p.Name = rawPlayer.Name;
+                    p.SteamID = rawPlayer.XUID;
 
-			if (b) {
-				if (TickDone != null)
-					TickDone(this, new TickDoneEventArgs());
-			}
+                    p.AdditionaInformations = additionalInformations[p.EntityID];
 
-			return b;
-		}
+                    if (p.IsAlive)
+                    {
+                        p.LastAlivePosition = p.Position.Copy();
+                    }
 
-		/// <summary>
-		/// Parses the tick internally
-		/// </summary>
-		/// <returns><c>true</c>, if tick was parsed, <c>false</c> otherwise.</returns>
-		private bool ParseTick()
+                    if (newplayer && p.SteamID != 0)
+                    {
+                        PlayerBindEventArgs bind = new PlayerBindEventArgs();
+                        bind.Player = p;
+                        RaisePlayerBind(bind);
+                    }
+                }
+            }
+
+            while (GEH_StartBurns.Count > 0)
+            {
+                var fireTup = GEH_StartBurns.Dequeue();
+                fireTup.Item2.ThrownBy = InfernoOwners[fireTup.Item1];
+                RaiseFireWithOwnerStart(fireTup.Item2);
+            }
+        }
+
+        /// <summary>
+        /// Parses the tick internally
+        /// </summary>
+        /// <returns><c>true</c>, if tick was parsed, <c>false</c> otherwise.</returns>
+        private bool ParseTick()
 		{
 			DemoCommand command = (DemoCommand)BitStream.ReadByte();
 
