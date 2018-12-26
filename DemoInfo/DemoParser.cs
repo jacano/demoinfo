@@ -514,6 +514,13 @@ namespace DemoInfo
         {
             bool b = ParseTick();
 
+            UpdateTick(b);
+
+            return b;
+        }
+
+        public void UpdateTick(bool b)
+        {
             UpdateTickData();
 
             if (b)
@@ -521,8 +528,6 @@ namespace DemoInfo
                 if (TickDone != null)
                     TickDone(this, new TickDoneEventArgs());
             }
-
-            return b;
         }
 
         private void UpdateTickData()
@@ -1001,6 +1006,8 @@ namespace DemoInfo
 
 			if (equipment.Weapon == EquipmentElement.P2000) {
 				e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) => {
+                    if (modelprecache.Count() == 0) return;
+
 					equipment.OriginalString = modelprecache[e2.Value];
 					if (modelprecache[e2.Value].Contains("_pist_223"))
 						equipment.Weapon = EquipmentElement.USP; //BAM
@@ -1013,7 +1020,8 @@ namespace DemoInfo
 
 			if (equipment.Weapon == EquipmentElement.M4A4) {
 				e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) => {
-					equipment.OriginalString = modelprecache[e2.Value];
+                    if (modelprecache.Count() == 0) return;
+                    equipment.OriginalString = modelprecache[e2.Value];
 					if (modelprecache[e2.Value].Contains("_rif_m4a1_s"))
 						equipment.Weapon = EquipmentElement.M4A1;  //BAM
 						// if it's not an M4A1-S, check if it's an M4A4
@@ -1026,7 +1034,8 @@ namespace DemoInfo
 
 			if (equipment.Weapon == EquipmentElement.P250) {
 				e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) => {
-					equipment.OriginalString = modelprecache[e2.Value];
+                    if (modelprecache.Count() == 0) return;
+                    equipment.OriginalString = modelprecache[e2.Value];
 					if (modelprecache[e2.Value].Contains("_pist_cz_75"))
 						equipment.Weapon = EquipmentElement.CZ;  //BAM
 					else if(modelprecache[e2.Value].Contains("_pist_p250"))
@@ -1040,7 +1049,8 @@ namespace DemoInfo
 			{
 				e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) =>
 				{
-					equipment.OriginalString = modelprecache[e2.Value];
+                    if (modelprecache.Count() == 0) return;
+                    equipment.OriginalString = modelprecache[e2.Value];
 					if (modelprecache[e2.Value].Contains("_pist_deagle"))
 						equipment.Weapon = EquipmentElement.Deagle; //BAM
 					else if (modelprecache[e2.Value].Contains("_pist_revolver"))
@@ -1054,7 +1064,8 @@ namespace DemoInfo
 			{
 				e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) =>
 				{
-					equipment.OriginalString = modelprecache[e2.Value];
+                    if (modelprecache.Count() == 0) return;
+                    equipment.OriginalString = modelprecache[e2.Value];
 					if (modelprecache[e2.Value].Contains("_smg_mp7"))
 						equipment.Weapon = EquipmentElement.MP7;
 					else if (modelprecache[e2.Value].Contains("_smg_mp5sd"))

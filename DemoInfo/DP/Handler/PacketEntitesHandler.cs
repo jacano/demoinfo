@@ -40,18 +40,25 @@ namespace DemoInfo.DP.Handler
 					} else {
 						// preserve / update
 						Entity e = parser.Entities[currentEntity];
+                        if (e == null) return;
+
 						e.ApplyUpdate(reader);
 					}
 				} else {
-					Entity e = parser.Entities[currentEntity];
-					e.ServerClass.AnnounceDestroyedEntity(e);
 
-					// leave / destroy
-					e.Leave ();
-					parser.Entities[currentEntity] = null;
+                    Entity e = parser.Entities[currentEntity];
+                    if (e != null)
+                    {
+                        e.ServerClass.AnnounceDestroyedEntity(e);
 
-					//dunno, but you gotta read this.
-					if (reader.ReadBit()) {
+                        // leave / destroy
+                        e.Leave();
+                    }
+
+                    parser.Entities[currentEntity] = null;
+
+                    //dunno, but you gotta read this.
+                    if (reader.ReadBit()) {
 					}
 				}
 			}
