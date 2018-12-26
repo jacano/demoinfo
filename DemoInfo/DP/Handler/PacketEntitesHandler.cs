@@ -33,29 +33,38 @@ namespace DemoInfo.DP.Handler
 					if (reader.ReadBit()) {
 						//create it
 						var e = ReadEnterPVS(reader, currentEntity, parser);
+                        if (e == null)
+                        {
+                            return;
+                        }
 
-						parser.Entities[currentEntity] = e;
+                        parser.Entities[currentEntity] = e;
 
-						e.ApplyUpdate(reader);
+                        e.ApplyUpdate(reader);
 					} else {
 						// preserve / update
 						Entity e = parser.Entities[currentEntity];
-                        if (e == null) return;
-
+                        if (e == null)
+                        {
+                            return;
+                        }
 						e.ApplyUpdate(reader);
 					}
 				} else {
 
-                    Entity e = parser.Entities[currentEntity];
-                    if (e != null)
+                    if (currentEntity < parser.Entities.Length)
                     {
-                        e.ServerClass.AnnounceDestroyedEntity(e);
+                        Entity e = parser.Entities[currentEntity];
+                        if (e != null)
+                        {
+                            e.ServerClass.AnnounceDestroyedEntity(e);
 
-                        // leave / destroy
-                        e.Leave();
+                            // leave / destroy
+                            e.Leave();
+                        }
+
+                        parser.Entities[currentEntity] = null;
                     }
-
-                    parser.Entities[currentEntity] = null;
 
                     //dunno, but you gotta read this.
                     if (reader.ReadBit()) {
@@ -72,6 +81,11 @@ namespace DemoInfo.DP.Handler
         {
 			//What kind of entity?
             int serverClassID = (int)reader.ReadInt(parser.SendTableParser.ClassBits);
+
+            if(serverClassID >= parser.SendTableParser.ServerClasses.Count)
+            {
+                return null;
+            }
 
 			//So find the correct server class
             ServerClass entityClass = parser.SendTableParser.ServerClasses[serverClassID];

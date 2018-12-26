@@ -32,22 +32,22 @@ namespace DemoInfo.DP
 			while (!bitstream.ChunkFinished)
             {
 				int cmd = bitstream.ReadProtobufVarInt(); //What type of packet is this?
-				int length = bitstream.ReadProtobufVarInt(); //And how long is it?
+                int length = bitstream.ReadProtobufVarInt(); //And how long is it?
 				bitstream.BeginChunk(length * 8); //read length bytes
 				if (cmd == (int)SVC_Messages.svc_PacketEntities) { //Parse packet entities
 					new PacketEntities().Parse(bitstream, demo); 
 				} else if (cmd == (int)SVC_Messages.svc_GameEventList) { //and all this other stuff
-					new GameEventList().Parse(bitstream, demo);
+					//new GameEventList().Parse(bitstream, demo);
 				} else if (cmd == (int)SVC_Messages.svc_GameEvent) {
-					new GameEvent().Parse(bitstream, demo);
+					//new GameEvent().Parse(bitstream, demo);
 				} else if (cmd == (int)SVC_Messages.svc_CreateStringTable) {
 					new CreateStringTable().Parse(bitstream, demo);
 				} else if (cmd == (int)SVC_Messages.svc_UpdateStringTable) {
 					new UpdateStringTable().Parse(bitstream, demo);
 				} else if (cmd == (int)NET_Messages.net_Tick) { //and all this other stuff
-						new NETTick().Parse(bitstream, demo);
+						//new NETTick().Parse(bitstream, demo);
 				} else if (cmd == (int)SVC_Messages.svc_UserMessage) {
-					new UserMessage().Parse(bitstream, demo);
+					//new UserMessage().Parse(bitstream, demo);
 				} else {
 					//You can use this flag to see what information the other packets contain, 
 					//if you want. Then you can look into the objects. Has some advnatages, and some disdavantages (mostly speed), 
