@@ -38,13 +38,18 @@ namespace DemoInfo.DP.Handler
 
 						e.ApplyUpdate(reader);
 					} else {
+                        if (currentEntity < 0 || currentEntity >= parser.Entities.Length) return;
 						// preserve / update
 						Entity e = parser.Entities[currentEntity];
-						e.ApplyUpdate(reader);
+                        if (e == null) return;
+
+                        e.ApplyUpdate(reader);
 					}
 				} else {
 					Entity e = parser.Entities[currentEntity];
-					e.ServerClass.AnnounceDestroyedEntity(e);
+                    if (e == null) return;
+
+                    e.ServerClass.AnnounceDestroyedEntity(e);
 
 					// leave / destroy
 					e.Leave ();

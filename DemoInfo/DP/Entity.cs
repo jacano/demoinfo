@@ -49,9 +49,12 @@ namespace DemoInfo.DP
 			int index = -1;
 			var entries = new List<PropertyEntry>();
 
-			//No read them. 
-			while ((index = ReadFieldIndex(reader, index, newWay)) != -1)
-				entries.Add(this.Props[index]);
+            //No read them. 
+            while ((index = ReadFieldIndex(reader, index, newWay)) != -1)
+            {
+                if (index < 0 || index >= this.Props.Length) return;
+                entries.Add(this.Props[index]);
+            }
 
 			//Now read the updated props
 			foreach (var prop in entries) {

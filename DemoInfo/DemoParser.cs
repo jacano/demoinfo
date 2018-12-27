@@ -557,64 +557,76 @@ namespace DemoInfo
 		/// </summary>
 		/// <returns><c>true</c>, if this wasn't the last tick, <c>false</c> otherwise.</returns>
 		public bool ParseNextTick()
-		{
-			if (Header == null)
-				throw new InvalidOperationException ("You need to call ParseHeader first before you call ParseToEnd or ParseNextTick!");
+        {
+            if (Header == null)
+                throw new InvalidOperationException("You need to call ParseHeader first before you call ParseToEnd or ParseNextTick!");
 
-			bool b = ParseTick();
-			
-			for (int i = 0; i < RawPlayers.Length; i++) {
-				if (RawPlayers[i] == null)
-					continue;
+            bool b = ParseTick();
 
-				var rawPlayer = RawPlayers[i];
+            ForceTick(b);
 
-				int id = rawPlayer.UserID;
+            return b;
+        }
 
-				if (PlayerInformations[i] != null) { //There is an good entity for this
-					bool newplayer = false;
-					if (!Players.ContainsKey(id)){
-						Players[id] = PlayerInformations[i];
-						newplayer = true;
-					}
+        public void ForceTick(bool b)
+        {
+            for (int i = 0; i < RawPlayers.Length; i++)
+            {
+                if (RawPlayers[i] == null)
+                    continue;
 
-					Player p = Players[id];
-					p.Name = rawPlayer.Name;
-					p.SteamID = rawPlayer.XUID;
+                var rawPlayer = RawPlayers[i];
 
-					p.AdditionaInformations = additionalInformations [p.EntityID];
+                int id = rawPlayer.UserID;
 
-					if (p.IsAlive) {
-						p.LastAlivePosition = p.Position.Copy();
-					}
+                if (PlayerInformations[i] != null)
+                { //There is an good entity for this
+                    bool newplayer = false;
+                    if (!Players.ContainsKey(id))
+                    {
+                        Players[id] = PlayerInformations[i];
+                        newplayer = true;
+                    }
 
-					if (newplayer && p.SteamID != 0){
-						PlayerBindEventArgs bind = new PlayerBindEventArgs();
-						bind.Player = p;
-						RaisePlayerBind(bind);
-					}
-				}
-			}
+                    Player p = Players[id];
+                    p.Name = rawPlayer.Name;
+                    p.SteamID = rawPlayer.XUID;
 
-			while (GEH_StartBurns.Count > 0) {
-				var fireTup = GEH_StartBurns.Dequeue();
-				fireTup.Item2.ThrownBy = InfernoOwners[fireTup.Item1];
-				RaiseFireWithOwnerStart(fireTup.Item2);
-			}
+                    p.AdditionaInformations = additionalInformations[p.EntityID];
 
-			if (b) {
-				if (TickDone != null)
-					TickDone(this, new TickDoneEventArgs());
-			}
+                    if (p.IsAlive)
+                    {
+                        p.LastAlivePosition = p.Position.Copy();
+                    }
 
-			return b;
-		}
+                    if (newplayer && p.SteamID != 0)
+                    {
+                        PlayerBindEventArgs bind = new PlayerBindEventArgs();
+                        bind.Player = p;
+                        RaisePlayerBind(bind);
+                    }
+                }
+            }
 
-		/// <summary>
-		/// Parses the tick internally
-		/// </summary>
-		/// <returns><c>true</c>, if tick was parsed, <c>false</c> otherwise.</returns>
-		private bool ParseTick()
+            while (GEH_StartBurns.Count > 0)
+            {
+                var fireTup = GEH_StartBurns.Dequeue();
+                fireTup.Item2.ThrownBy = InfernoOwners[fireTup.Item1];
+                RaiseFireWithOwnerStart(fireTup.Item2);
+            }
+
+            if (b)
+            {
+                if (TickDone != null)
+                    TickDone(this, new TickDoneEventArgs());
+            }
+        }
+
+        /// <summary>
+        /// Parses the tick internally
+        /// </summary>
+        /// <returns><c>true</c>, if tick was parsed, <c>false</c> otherwise.</returns>
+        private bool ParseTick()
 		{
 			DemoCommand command = (DemoCommand)BitStream.ReadByte();
 
@@ -1025,7 +1037,10 @@ namespace DemoInfo
 		{
 			var equipment = weapons [e.Entity.ID];
 			equipment.EntityID = e.Entity.ID;
-			equipment.Weapon = equipmentMapping [e.Class];
+            if(equipmentMapping.TryGetValue(e.Class, out var weapon))
+            {
+                equipment.Weapon = weapon;
+            }
 			equipment.AmmoInMagazine = -1;
 
 			e.Entity.FindProperty("m_iClip1").IntRecived += (asdasd, ammoUpdate) => {
@@ -1038,7 +1053,8 @@ namespace DemoInfo
 
 			if (equipment.Weapon == EquipmentElement.P2000) {
 				e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) => {
-					equipment.OriginalString = modelprecache[e2.Value];
+                    if (modelprecache.Count == 0) return;
+                    equipment.OriginalString = modelprecache[e2.Value];
 					if (modelprecache[e2.Value].Contains("_pist_223"))
 						equipment.Weapon = EquipmentElement.USP; //BAM
 					else if(modelprecache[e2.Value].Contains("_pist_hkp2000"))
@@ -1050,6 +1066,7 @@ namespace DemoInfo
 
 			if (equipment.Weapon == EquipmentElement.M4A4) {
 				e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) => {
+                    if (modelprecache.Count == 0) return;
 					equipment.OriginalString = modelprecache[e2.Value];
 					if (modelprecache[e2.Value].Contains("_rif_m4a1_s"))
 						equipment.Weapon = EquipmentElement.M4A1;  //BAM
@@ -1063,7 +1080,8 @@ namespace DemoInfo
 
 			if (equipment.Weapon == EquipmentElement.P250) {
 				e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) => {
-					equipment.OriginalString = modelprecache[e2.Value];
+                    if (modelprecache.Count == 0) return;
+                    equipment.OriginalString = modelprecache[e2.Value];
 					if (modelprecache[e2.Value].Contains("_pist_cz_75"))
 						equipment.Weapon = EquipmentElement.CZ;  //BAM
 					else if(modelprecache[e2.Value].Contains("_pist_p250"))
@@ -1077,7 +1095,8 @@ namespace DemoInfo
 			{
 				e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) =>
 				{
-					equipment.OriginalString = modelprecache[e2.Value];
+                    if (modelprecache.Count == 0) return;
+                    equipment.OriginalString = modelprecache[e2.Value];
 					if (modelprecache[e2.Value].Contains("_pist_deagle"))
 						equipment.Weapon = EquipmentElement.Deagle; //BAM
 					else if (modelprecache[e2.Value].Contains("_pist_revolver"))
@@ -1091,7 +1110,8 @@ namespace DemoInfo
 			{
 				e.Entity.FindProperty("m_nModelIndex").IntRecived += (sender2, e2) =>
 				{
-					equipment.OriginalString = modelprecache[e2.Value];
+                    if (modelprecache.Count == 0) return;
+                    equipment.OriginalString = modelprecache[e2.Value];
 					if (modelprecache[e2.Value].Contains("_smg_mp7"))
 						equipment.Weapon = EquipmentElement.MP7;
 					else if (modelprecache[e2.Value].Contains("_smg_mp5sd"))

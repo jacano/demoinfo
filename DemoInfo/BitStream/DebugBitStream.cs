@@ -27,7 +27,7 @@ namespace DemoInfo.BitStreamImpl
 		private void Verify<T>(T a, T b)
 		{
 			if (!a.Equals(b)) {
-				System.Diagnostics.Debug.Assert(false);
+				//System.Diagnostics.Debug.Assert(false);
 				throw new InvalidOperationException(String.Format("{0} vs {1} ({2} vs {3})",
 					a, b, A.GetType().Name, B.GetType().Name));
 			}
